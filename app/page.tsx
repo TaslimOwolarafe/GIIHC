@@ -826,13 +826,13 @@ export default function Home() {
             )}
             {cardDataUrl && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <button className="btn btn-primary" style={{ background: "linear-gradient(135deg, #6FCF4A, #3EC9BE)" }} onClick={submit} disabled={submitting}>
+                  {submitting ? "Registering…" : <><Icon.Check /> Confirm My Attendance</>}
+                </button>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <button className="btn btn-primary" onClick={downloadCard}><Icon.Download /> Download</button>
                   <button className="btn btn-ghost" onClick={shareCard}><Icon.Share /> Share</button>
                 </div>
-                <button className="btn btn-primary" style={{ background: "linear-gradient(135deg, #6FCF4A, #3EC9BE)" }} onClick={submit} disabled={submitting}>
-                  {submitting ? "Registering…" : <><Icon.Check /> Confirm My Attendance</>}
-                </button>
                 {submitError && (
                   <div style={{ padding: "10px 14px", borderRadius: 12, fontSize: 13, color: "#fca5a5", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>{submitError}</div>
                 )}
