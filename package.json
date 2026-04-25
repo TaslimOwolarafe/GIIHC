@@ -1,0 +1,24 @@
+{
+  "name": "gihc-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "*",
+    "react": "*",
+    "react-dom": "*",
+    "@supabase/supabase-js": "*",
+    "html2canvas": "*"
+  },
+  "devDependencies": {
+    "typescript": "*",
+    "@types/react": "*",
+    "@types/node": "*",
+    "tailwindcss": "*",
+    "@tailwindcss/postcss": "*"
+  }
+}
