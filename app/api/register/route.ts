@@ -6,6 +6,8 @@ export async function POST(request: NextRequest) {
     const sb = getSupabaseAdmin();
     const formData = await request.formData();
     const name = (formData.get("name") as string)?.trim();
+    const email = (formData.get("email") as string)?.trim() || null;
+    const faculty = (formData.get("faculty") as string)?.trim() || null;
     const imageFile = formData.get("image") as File | null;
 
     if (!name) {
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await sb
       .from("attendees")
-      .insert([{ name, image_url }])
+      .insert([{ name, email, faculty, image_url }])
       .select()
       .single();
 

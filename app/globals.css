@@ -36,7 +36,7 @@ body {
 .font-display { font-family: var(--display); }
 
 /* ── Inputs ── */
-input[type="text"], input[type="search"] {
+input[type="text"], input[type="search"], input[type="email"] {
   font-family: var(--font);
   font-size: 1rem;
   color: var(--text);
@@ -48,7 +48,7 @@ input[type="text"], input[type="search"] {
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-input[type="text"]:focus, input[type="search"]:focus {
+input[type="text"]:focus, input[type="search"]:focus, input[type="email"]:focus {
   border-color: var(--t);
   box-shadow: 0 0 0 3px rgba(62,201,190,0.15);
 }

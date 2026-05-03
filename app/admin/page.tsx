@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 type Attendee = {
   id: string;
   name: string;
+  email?: string | null;
+  faculty?: string | null;
   image_url: string | null;
   created_at: string;
 };
@@ -32,6 +34,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [facultyFilter, setFacultyFilter] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -55,10 +58,12 @@ export default function AdminPage() {
   }, [fetchData]);
 
   const exportCSV = () => {
-    const rows = [["Name", "Registered At", "Has Photo", "ID"]];
+    const rows = [["Name", "Email", "Faculty / Department", "Registered At", "Has Photo", "ID"]];
     attendees.forEach((a) =>
       rows.push([
         a.name,
+        a.email ?? "",
+        a.faculty ?? "",
         new Date(a.created_at).toLocaleString(),
         a.image_url ? "Yes" : "No",
         a.id,
@@ -71,18 +76,28 @@ export default function AdminPage() {
     a.click();
   };
 
-  const filtered = attendees.filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const faculties = Array.from(
+    new Set(attendees.map((a) => a.faculty).filter(Boolean) as string[])
+  ).sort();
+
+  const filtered = attendees.filter((a) => {
+    const matchSearch =
+      a.name.toLowerCase().includes(search.toLowerCase()) ||
+      (a.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (a.faculty ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchFaculty = !facultyFilter || a.faculty === facultyFilter;
+    return matchSearch && matchFaculty;
+  });
 
   const today = attendees.filter(
     (a) => new Date(a.created_at).toDateString() === new Date().toDateString()
   ).length;
   const withPhotos = attendees.filter((a) => a.image_url).length;
+  const withEmail = attendees.filter((a) => a.email).length;
+  const withFaculty = attendees.filter((a) => a.faculty).length;
 
   return (
     <div style={{ minHeight: "100dvh", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font)" }}>
-      {/* Header */}
       <div style={{
         padding: "24px 32px",
         borderBottom: "1px solid var(--border)",
@@ -96,56 +111,64 @@ export default function AdminPage() {
               <path d="M100,100 L100,180 Q120,180 135,170 Q150,158 150,140 Q150,124 138,116 Q128,110 128,100 Z" fill="#F5C518"/>
               <path d="M100,100 L100,180 Q80,180 65,170 Q50,158 50,140 Q50,124 62,116 Q72,110 72,100 Z" fill="#2DADA3"/>
             </svg>
-            <span style={{ fontSize: 13, color: "#3EC9BE", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              GIHC 2026
-            </span>
+            <span style={{ fontSize: 13, color: "#3EC9BE", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>GIHC 2026</span>
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "white", letterSpacing: "-0.02em", marginBottom: 4 }}>
-            Attendance Dashboard
-          </h1>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "white", letterSpacing: "-0.02em", marginBottom: 4 }}>Attendance Dashboard</h1>
           {lastFetched && (
-            <p style={{ fontSize: 12, color: "var(--muted)" }}>
-              Last updated: {lastFetched.toLocaleTimeString()} · Auto-refreshes every 30s
-            </p>
+            <p style={{ fontSize: 12, color: "var(--muted)" }}>Last updated: {lastFetched.toLocaleTimeString()} · Auto-refreshes every 30s</p>
           )}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn btn-ghost" style={{ fontSize: 14, padding: "10px 18px" }} onClick={fetchData}>
-            ↻ Refresh
-          </button>
-          <button className="btn btn-primary" style={{ fontSize: 14, padding: "10px 18px" }} onClick={exportCSV}>
-            ↓ Export CSV
-          </button>
+          <button className="btn btn-ghost" style={{ fontSize: 14, padding: "10px 18px" }} onClick={fetchData}>↻ Refresh</button>
+          <button className="btn btn-primary" style={{ fontSize: 14, padding: "10px 18px" }} onClick={exportCSV}>↓ Export CSV</button>
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 14, marginBottom: 32 }}>
           {[
             { label: "Total Registered", value: attendees.length, color: "#3EC9BE" },
-            { label: "With Photos", value: withPhotos, color: "#6FCF4A" },
             { label: "Registered Today", value: today, color: "#F5C518" },
-            { label: "Without Photos", value: attendees.length - withPhotos, color: "rgba(255,255,255,0.4)" },
+            { label: "With Photos", value: withPhotos, color: "#6FCF4A" },
+            { label: "With Email", value: withEmail, color: "#a78bfa" },
+            { label: "With Faculty", value: withFaculty, color: "#ff9f43" },
+            { label: "No Photo", value: attendees.length - withPhotos, color: "rgba(255,255,255,0.35)" },
           ].map((s) => (
-            <div key={s.label} className="card" style={{ padding: "20px 22px" }}>
-              <div style={{ fontSize: 34, fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 6 }}>
+            <div key={s.label} className="card" style={{ padding: "18px 20px" }}>
+              <div style={{ fontSize: 30, fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 6 }}>
                 {loading ? "—" : s.value.toLocaleString()}
               </div>
-              <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 500 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 500 }}>{s.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Search */}
-        <div style={{ marginBottom: 20 }}>
+        {/* Search + Filter */}
+        <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
           <input
             type="search"
-            placeholder="Search by name…"
+            placeholder="Search by name, email or faculty…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ maxWidth: 360 }}
+            style={{ flex: 1, minWidth: 220 }}
           />
+          {faculties.length > 0 && (
+            <select
+              value={facultyFilter}
+              onChange={(e) => setFacultyFilter(e.target.value)}
+              style={{
+                fontFamily: "var(--font)", fontSize: 14, color: "var(--text)",
+                background: "var(--surface2)", border: "1.5px solid var(--border)",
+                borderRadius: 14, padding: "12px 16px", outline: "none", cursor: "pointer",
+              }}
+            >
+              <option value="">All Faculties</option>
+              {faculties.map((f) => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Table */}
@@ -153,33 +176,28 @@ export default function AdminPage() {
           <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>Loading…</div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>
-            {search ? `No results for "${search}"` : "No registrations yet."}
+            {search || facultyFilter ? "No results found." : "No registrations yet."}
           </div>
         ) : (
-          <div className="card" style={{ overflow: "hidden" }}>
-            {/* Table head */}
+          <div className="card" style={{ overflow: "hidden", overflowX: "auto" }}>
             <div style={{
-              display: "grid", gridTemplateColumns: "48px 1fr 200px 120px",
+              display: "grid", gridTemplateColumns: "48px 1fr 180px 160px 150px 80px",
               padding: "12px 20px", background: "var(--surface2)",
               borderBottom: "1px solid var(--border)",
               fontSize: 11, fontWeight: 700, color: "var(--muted)",
-              textTransform: "uppercase", letterSpacing: "0.08em",
+              textTransform: "uppercase", letterSpacing: "0.08em", minWidth: 760,
             }}>
-              <div />
-              <div>Name</div>
-              <div>Registered</div>
-              <div>Photo</div>
+              <div /><div>Name</div><div>Email</div><div>Faculty</div><div>Registered</div><div>Photo</div>
             </div>
 
-            {/* Rows */}
             {filtered.map((a, i) => (
               <div
                 key={a.id}
                 style={{
-                  display: "grid", gridTemplateColumns: "48px 1fr 200px 120px",
+                  display: "grid", gridTemplateColumns: "48px 1fr 180px 160px 150px 80px",
                   alignItems: "center", padding: "14px 20px",
                   borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
-                  transition: "background 0.15s",
+                  transition: "background 0.15s", minWidth: 760,
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
@@ -191,18 +209,24 @@ export default function AdminPage() {
                 }}>
                   <Avatar src={a.image_url} name={a.name} />
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "white", paddingRight: 16 }}>{a.name}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "white", paddingRight: 12 }}>{a.name}</div>
+                <div style={{ fontSize: 12, color: a.email ? "var(--muted)" : "rgba(255,255,255,0.2)", paddingRight: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {a.email ?? "—"}
+                </div>
+                <div style={{ fontSize: 12, color: a.faculty ? "var(--muted)" : "rgba(255,255,255,0.2)", paddingRight: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {a.faculty ?? "—"}
+                </div>
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>
                   {new Date(a.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
                 </div>
                 <div>
                   <span style={{
-                    fontSize: 11, fontWeight: 600, borderRadius: 100, padding: "4px 12px",
+                    fontSize: 11, fontWeight: 600, borderRadius: 100, padding: "4px 10px",
                     background: a.image_url ? "rgba(111,207,74,0.12)" : "rgba(255,255,255,0.05)",
                     color: a.image_url ? "#6FCF4A" : "var(--muted)",
                     border: `1px solid ${a.image_url ? "rgba(111,207,74,0.25)" : "var(--border)"}`,
                   }}>
-                    {a.image_url ? "✓ With photo" : "No photo"}
+                    {a.image_url ? "✓ Yes" : "No"}
                   </span>
                 </div>
               </div>
