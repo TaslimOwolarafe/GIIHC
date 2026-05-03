@@ -423,7 +423,7 @@ function ConferenceInfo() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: "0 20px" }}>
+      {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: "0 20px" }}>
         {[
           { value: "10,000+", label: "Students Reached", icon: "🎓" },
           { value: "200+", label: "Professionals", icon: "🏥" },
@@ -435,7 +435,7 @@ function ConferenceInfo() {
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }
