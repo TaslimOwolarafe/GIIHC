@@ -216,7 +216,7 @@ function AttendanceCard({
   );
 }
 
-/* ─── Conference Info Section ─── */
+/* ─── PersonCard with auto height (no truncation) ─── */
 function PersonCard({ photo, name, role, tag, tagColor, tagBg, tagBorder, accent }: {
   photo: string; name: string; role: string; tag: string;
   tagColor: string; tagBg: string; tagBorder: string; accent: string;
@@ -225,28 +225,54 @@ function PersonCard({ photo, name, role, tag, tagColor, tagBg, tagBorder, accent
     <div style={{
       background: "rgba(17,28,18,0.95)", border: `1px solid ${accent}30`,
       borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column",
+      height: "100%", // Fill grid cell height
     }}>
-      <div style={{ position: "relative", height: 200, background: `linear-gradient(160deg, ${accent}18 0%, #0a1a0b 100%)`, overflow: "hidden" }}>
-        <img src={photo} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }} />
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to top, rgba(17,28,18,0.98) 0%, transparent 100%)" }} />
+      {/* Photo area - fixed height, image covers it nicely */}
+      <div style={{
+        position: "relative",
+        height: 240,
+        background: `linear-gradient(160deg, ${accent}18 0%, #0a1a0b 100%)`,
+        overflow: "hidden",
+        flexShrink: 0,
+      }}>
+        <img
+          src={photo}
+          alt={name}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center 20%",
+            display: "block",
+          }}
+        />
+        {/* Gradient overlay for better text readability */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to top, rgba(17,28,18,0.95) 0%, transparent 100%)" }} />
+        {/* Tag badge */}
         <div style={{
           position: "absolute", top: 12, right: 12,
           fontSize: 10, fontWeight: 800, padding: "4px 10px", borderRadius: 100,
           background: tagBg, color: tagColor, border: `1px solid ${tagBorder}`,
           letterSpacing: "0.8px", textTransform: "uppercase", backdropFilter: "blur(8px)",
+          zIndex: 2,
         }}>
           {tag}
         </div>
       </div>
+
+      {/* Content area - NO truncation, full text displayed */}
       <div style={{ padding: "14px 16px 18px", flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
         <div style={{ fontWeight: 800, color: "white", fontSize: 15, lineHeight: 1.3 }}>{name}</div>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, lineHeight: 1.5 }}>{role}</div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, lineHeight: 1.5, whiteSpace: "normal", wordWrap: "break-word" }}>
+          {role}
+        </div>
         <div style={{ marginTop: 6, height: 2, width: 32, borderRadius: 2, background: accent }} />
       </div>
     </div>
   );
 }
 
+/* ─── Conference Info Section ─── */
 function ConferenceInfo() {
   const people = [
     {
@@ -307,8 +333,8 @@ function ConferenceInfo() {
   const sectionLabel = { fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#3EC9BE", marginBottom: 6, display: "inline-block" };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 20px 80px" }}>
-      <div style={{ textAlign: "center", padding: "56px 0 36px" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 80px" }}>
+      <div style={{ textAlign: "center", padding: "56px 20px 36px" }}>
         <div style={{ display: "inline-block", background: "rgba(245,197,24,0.1)", border: "1px solid rgba(245,197,24,0.25)", borderRadius: 100, padding: "6px 18px", fontSize: 13, color: "#F5C518", fontWeight: 600, marginBottom: 16 }}>
           Conference Details
         </div>
@@ -321,7 +347,7 @@ function ConferenceInfo() {
       </div>
 
       {/* Theme + subthemes */}
-      <div style={{ ...cardStyle, marginBottom: 32, background: "rgba(62,201,190,0.05)", border: "1px solid rgba(62,201,190,0.15)" }}>
+      <div style={{ ...cardStyle, margin: "0 20px 32px", background: "rgba(62,201,190,0.05)", border: "1px solid rgba(62,201,190,0.15)" }}>
         <span style={sectionLabel}>Conference Theme</span>
         <h3 style={{ fontSize: 20, fontWeight: 800, color: "white", lineHeight: 1.3, marginBottom: 8 }}>
           Surviving to Succeed: Addressing Health, Well-being, and Welfare Challenges in the Student Environment
@@ -345,7 +371,7 @@ function ConferenceInfo() {
       </div>
 
       {/* Schedule */}
-      <div style={{ marginBottom: 40 }}>
+      <div style={{ marginBottom: 40, padding: "0 20px" }}>
         <div style={{ ...sectionLabel, display: "block", marginBottom: 16 }}>Conference Schedule</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
           {schedule.map((s) => (
@@ -367,16 +393,26 @@ function ConferenceInfo() {
         </div>
       </div>
 
-      {/* People grid */}
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ ...sectionLabel, display: "block", marginBottom: 20 }}>Speakers, Panelists &amp; Hosts</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
-          {people.map((p) => <PersonCard key={p.name} {...p} />)}
+      {/* People grid - responsive, auto height cards */}
+      <div style={{ marginBottom: 40, padding: "0 20px" }}>
+        <div style={{ marginBottom: 20 }}>
+          <span style={{ ...sectionLabel, display: "block" }}>Speakers, Panelists &amp; Hosts</span>
+        </div>
+        
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gap: 20,
+          alignItems: "start", // Important: allows cards to have different heights
+        }}>
+          {people.map((p) => (
+            <PersonCard key={p.name} {...p} />
+          ))}
         </div>
       </div>
 
       {/* Royal Father */}
-      <div style={{ ...cardStyle, marginBottom: 32, background: "rgba(245,197,24,0.04)", border: "1px solid rgba(245,197,24,0.15)" }}>
+      <div style={{ ...cardStyle, margin: "0 20px 32px", background: "rgba(245,197,24,0.04)", border: "1px solid rgba(245,197,24,0.15)" }}>
         <span style={{ ...sectionLabel, color: "#F5C518" }}>Royal Father of the Day</span>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 8 }}>
           <div style={{ fontSize: 36 }}>👑</div>
@@ -387,7 +423,7 @@ function ConferenceInfo() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: "0 20px" }}>
         {[
           { value: "10,000+", label: "Students Reached", icon: "🎓" },
           { value: "200+", label: "Professionals", icon: "🏥" },
@@ -817,7 +853,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* "done" step is now only reachable if you explicitly call setStep("done") elsewhere; 
+        {/* "done" step is now only reachable if you explicitly call setStep("done") elsewhere;
             card step IS the done step. Keeping it for safety / future use. */}
         {step === "done" && (
           <div className="anim-pop" style={{ textAlign: "center" }}>
