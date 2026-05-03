@@ -18,6 +18,10 @@ import {
 /* ─── Types ─────────────────────────────────── */
 type Step = "form" | "card" | "done";
 
+/* ─── Venue ──────────────────────────────────── */
+const VENUE_LABEL = "OAK Park Conference Hall, ICT Center, OAU";
+const VENUE_MAPS_URL = "https://maps.google.com/?q=OAK+Park+Conference+Hall+ICT+Center+Obafemi+Awolowo+University+Ile-Ife";
+
 /* ─── Tiny icon helpers ──────────────────────── */
 const Icon = {
   Camera: () => (
@@ -61,6 +65,12 @@ const Icon = {
   Close: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  ),
+  MapPin: () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+      <circle cx="12" cy="10" r="3"/>
     </svg>
   ),
 };
@@ -181,7 +191,7 @@ function AttendanceCard({
           <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />
           <div>
             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 4, fontFamily: FONT }}>Venue</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "white", fontFamily: FONT }}>Oduduwa Hall, OAU</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "white", fontFamily: FONT }}>{VENUE_LABEL}</div>
           </div>
         </div>
 
@@ -498,7 +508,6 @@ export default function Home() {
     e.target.value = "";
   }, [stopCamera]);
 
-  // generateCard renders the card, captures it, then silently registers — all in one go.
   const generateCard = useCallback(async () => {
     if (!name.trim()) { setFormError("Please enter your name first."); return; }
     setFormError("");
@@ -528,7 +537,7 @@ export default function Home() {
       setGeneratingCard(false);
     }
 
-    // Silently register in the background — fire and forget
+    // Silently register in the background
     try {
       const fd = new FormData();
       fd.append("name", name.trim());
@@ -537,9 +546,7 @@ export default function Home() {
       if (photoFile) fd.append("image", photoFile);
       const res = await fetch("/api/register", { method: "POST", body: fd });
       if (res.ok) setCount((c) => (c ?? 0) + 1);
-    } catch (_) {
-      // silent — registration failure shouldn't block card usage
-    }
+    } catch (_) {}
   }, [name, email, faculty, photoFile, stopCamera]);
 
   const downloadCard = useCallback(() => {
@@ -619,19 +626,45 @@ export default function Home() {
         </p>
 
         <div className="anim-fadeup delay-3" style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
-          {[
-            { icon: "📅", text: "Thu, 7th May 2026" },
-            { icon: "⏰", text: "10:00 AM" },
-            { icon: "📍", text: "Oduduwa Hall, OAU" },
-          ].map((c) => (
-            <span key={c.text} style={{
+          {/* Date chip */}
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: 100, padding: "7px 14px", fontSize: 13, color: "var(--muted)",
+          }}>
+            📅 Thu, 7th May 2026
+          </span>
+          {/* Time chip */}
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: 100, padding: "7px 14px", fontSize: 13, color: "var(--muted)",
+          }}>
+            ⏰ 10:00 AM
+          </span>
+          {/* Venue chip — clickable Maps link */}
+          <a
+            href={VENUE_MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              background: "var(--surface)", border: "1px solid var(--border)",
-              borderRadius: 100, padding: "7px 14px", fontSize: 13, color: "var(--muted)",
-            }}>
-              {c.icon} {c.text}
-            </span>
-          ))}
+              background: "var(--surface)", border: "1px solid rgba(62,201,190,0.35)",
+              borderRadius: 100, padding: "7px 14px", fontSize: 13,
+              color: "#3EC9BE", textDecoration: "none", cursor: "pointer",
+              transition: "background 0.15s, border-color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(62,201,190,0.08)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(62,201,190,0.6)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "var(--surface)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(62,201,190,0.35)";
+            }}
+          >
+            <Icon.MapPin /> {VENUE_LABEL}
+          </a>
         </div>
       </div>
 
