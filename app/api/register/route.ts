@@ -53,13 +53,34 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const sb = getSupabaseAdmin();
-    const { data, error } = await sb
-      .from("attendees")
-      .select("*")
-      .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return NextResponse.json({ attendees: data ?? [] });
+    // Supabase caps each request at 1000 rows by default.
+    // We paginate in chunks of 1000 until we have everything.
+    const PAGE_SIZE = 1000;
+    let allAttendees: any[] = [];
+    let from = 0;
+    let done = false;
+
+    while (!done) {
+      const { data, error } = await sb
+        .from("attendees")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        allAttendees = allAttendees.concat(data);
+        from += PAGE_SIZE;
+        // If we got fewer rows than PAGE_SIZE, we've reached the end
+        if (data.length < PAGE_SIZE) done = true;
+      } else {
+        done = true;
+      }
+    }
+
+    return NextResponse.json({ attendees: allAttendees });
   } catch {
     return NextResponse.json({ attendees: [] });
   }
